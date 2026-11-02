@@ -1,5 +1,5 @@
 // Offline-first: serve the app shell from cache. Bump VERSION whenever a file changes.
-const VERSION = 'quietreps-v1';
+const VERSION = 'quietreps-v2';
 const SHELL = [
   './', 'index.html', 'app.css', 'app.js', 'engine.js', 'data.js', 'store.js', 'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png',

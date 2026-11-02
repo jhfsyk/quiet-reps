@@ -1,4 +1,4 @@
-// Run: node --test tests/
+﻿// Run: node --test tests/
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as E from '../engine.js';
@@ -27,7 +27,7 @@ test('weeks and phases follow the 17-week plan', () => {
   assert.equal(E.weekNumber('2026-11-02', '2026-11-08'), 1);
   assert.equal(E.weekNumber('2026-11-02', '2026-12-28'), 9);
   assert.equal(E.weekNumber('2026-11-02', '2027-02-28'), 17);
-  assert.equal(E.phaseFor(9).name, 'Deload');
+  assert.equal(E.phaseFor(9).name, 'ディロード');
   assert.ok(E.phaseFor(12).shortRest);
 });
 
@@ -55,7 +55,7 @@ test('deload week uses 2 sets; push phase uses 45 s rest except the circuit', ()
 test('an extra set adds a round with only that exercise', () => {
   const progress = { 'A:pushup': { ex: 'pushup', level: 2, target: 12, streak: 0 } };
   const { steps } = E.buildSession('A', { week: 2, progress });
-  const ss1 = steps.filter(s => s.block === 'Superset 1');
+  const ss1 = steps.filter(s => s.block === 'スーパーセット1');
   assert.equal(ss1.length, 7);
   assert.deepEqual([ss1.at(-1).ex, ss1.at(-1).round], ['pushup', 4]);
   assert.equal(ss1.at(-2).afterKind, 'rest');

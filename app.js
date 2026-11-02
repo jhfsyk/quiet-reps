@@ -20,6 +20,7 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;'
 const kg = n => (n == null ? '–' : n.toFixed(1));
 const mmss = s => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 const repsText = r => r.join('/');
+const perSideNote = ex => (ex.perSide ? '（片側）' : '');
 
 function commit() {
   save(S);
@@ -173,64 +174,64 @@ function home() {
 
   let todayCard;
   if (S.active) {
-    todayCard = card('In progress', `<h2>${esc(DAYS[S.active.day].name)} · step ${S.active.idx + 1}/${S.active.steps.length}</h2>
-      <button class="primary big" data-act="resume">Resume workout</button>`);
+    todayCard = card('途中のワークアウト', `<h2>${esc(DAYS[S.active.day].name)}・ステップ ${S.active.idx + 1}/${S.active.steps.length}</h2>
+      <button class="primary big" data-act="resume">再開する</button>`);
   } else if (doneToday) {
-    todayCard = card('Today', `<h2>Done for today ✓</h2><p class="muted">Eat well and sleep. See you next session.</p>
-      <button class="text-btn" data-act="pick">Do another workout</button>`);
+    todayCard = card('今日', `<h2>今日は完了 ✓</h2><p class="muted">しっかり食べて、よく寝よう。次のトレーニングで。</p>
+      <button class="text-btn" data-act="pick">別のワークアウトをする</button>`);
   } else if (scheduled) {
     const d = DAYS[scheduled];
-    todayCard = card('Today', `<h2>${d.name} <span class="muted">· ${d.subtitle}</span></h2>
-      <p class="muted">About ${d.minutes} min · quiet mode${phase.deload ? ' · deload: 2 sets each' : ''}${phase.shortRest ? ' · 45 s rest' : ''}</p>
-      <button class="primary big" data-act="start" data-day="${scheduled}">Start</button>
-      <button class="text-btn" data-act="pick">Choose a different workout</button>`);
+    todayCard = card('今日', `<h2>${d.name} <span class="muted">・${d.subtitle}</span></h2>
+      <p class="muted">約${d.minutes}分・静音モード${phase.deload ? '・ディロード：各2セット' : ''}${phase.shortRest ? '・休憩45秒' : ''}</p>
+      <button class="primary big" data-act="start" data-day="${scheduled}">スタート</button>
+      <button class="text-btn" data-act="pick">別のワークアウトを選ぶ</button>`);
   } else {
-    todayCard = card('Today', `<h2>Rest day</h2><p class="muted">Walk, stretch, sleep. Muscles grow on rest days.</p>
-      <button class="text-btn" data-act="pick">Train anyway</button>`);
+    todayCard = card('今日', `<h2>休養日</h2><p class="muted">散歩・ストレッチ・睡眠。筋肉は休んでいる間に育ちます。</p>
+      <button class="text-btn" data-act="pick">それでもトレーニングする</button>`);
   }
 
   const strip = weekDates.map((d, i) => {
     const planned = SCHEDULE[(i + 1) % 7];
     const done = S.sessions.some(s => s.date === d && s.day !== 'T');
     return `<div class="day ${done ? 'done' : ''} ${planned ? '' : 'off'} ${d === t ? 'today' : ''}">
-      <span>${'MTWTFSS'[i]}</span><i>${done ? '✓' : planned || '·'}</i></div>`;
+      <span>${'月火水木金土日'[i]}</span><i>${done ? '✓' : planned || '·'}</i></div>`;
   }).join('');
 
   const avg = E.avg7(S.weights, t);
   const target = E.targetOn(st, t);
   const todays = S.weights.find(w => w.date === t);
   const weeksLeft = Math.max(0, Math.ceil(E.daysBetween(t, st.targetDate) / 7));
-  const pace = avg == null ? 'Log a few mornings to see your trend'
-    : avg <= target ? `${kg(target - avg)} kg ahead of pace` : `${kg(avg - target)} kg behind pace`;
+  const pace = avg == null ? '数日分、朝の体重を記録すると推移が見えます'
+    : avg <= target ? `目標ペースより ${kg(target - avg)} kg 先行` : `目標ペースより ${kg(avg - target)} kg 遅れ`;
 
   const n = S.nutrition[t] || {};
   const hints = [];
-  if (week === 1 && !S.tests.pushup) hints.push(card('Baseline', `<p>Do the Max test once this week to record your starting push-ups and squats.</p>
-    <button class="text-btn" data-act="start" data-day="T">Start max test</button>`));
-  if (week === 17) hints.push(card('Test week', `<p>Re-test your max push-ups and squats and compare with week 1.</p>
-    <button class="text-btn" data-act="start" data-day="T">Start max test</button>`));
+  if (week === 1 && !S.tests.pushup) hints.push(card('ベースライン', `<p>今週中にMAXテストを1回行い、腕立て伏せとスクワットの開始時の回数を記録しましょう。</p>
+    <button class="text-btn" data-act="start" data-day="T">MAXテストを始める</button>`));
+  if (week === 17) hints.push(card('テスト週', `<p>腕立て伏せとスクワットのMAXを再測定して、第1週と比べましょう。</p>
+    <button class="text-btn" data-act="start" data-day="T">MAXテストを始める</button>`));
 
   return `
   <header class="top">
-    <p class="eyebrow">Week ${week} · ${esc(phase.name)}</p>
-    <h1>${now.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}</h1>
+    <p class="eyebrow">第${week}週・${esc(phase.name)}</p>
+    <h1>${now.toLocaleDateString('ja-JP', { month: 'long', day: 'numeric', weekday: 'short' })}</h1>
   </header>
   ${todayCard}
-  ${card(`This week · ${doneCount}/5`, `<div class="strip">${strip}</div>`)}
+  ${card(`今週・${doneCount}/5`, `<div class="strip">${strip}</div>`)}
   ${weeklyCheckCard(week, t)}
   ${hints.join('')}
-  ${card('Weight', `
+  ${card('体重', `
     <div class="stats">
-      <div><b>${kg(avg)}</b><span>7-day avg</span></div>
-      <div><b>${kg(target)}</b><span>target today</span></div>
-      <div><b>${weeksLeft}</b><span>weeks left</span></div>
+      <div><b>${kg(avg)}</b><span>7日平均</span></div>
+      <div><b>${kg(target)}</b><span>今日の目標</span></div>
+      <div><b>${weeksLeft}</b><span>残り週数</span></div>
     </div>
     <p class="muted">${pace}</p>
-    <button class="secondary" data-nav="weight">${todays ? `Today: ${kg(todays.kg)} kg · edit` : 'Weigh in'}</button>`)}
-  ${card('Food today', `
+    <button class="secondary" data-nav="weight">${todays ? `今日：${kg(todays.kg)} kg・編集` : '体重を記録'}</button>`)}
+  ${card('今日の食事', `
     <div class="toggles">
-      <button class="toggle ${n.kcal ? 'on' : ''}" data-act="food" data-k="kcal"><b>${st.kcal.toLocaleString()} kcal</b><span>${n.kcal ? 'On target ✓' : 'Tap when on target'}</span></button>
-      <button class="toggle ${n.protein ? 'on' : ''}" data-act="food" data-k="protein"><b>${st.protein} g protein</b><span>${n.protein ? 'Hit ✓' : 'Tap when hit'}</span></button>
+      <button class="toggle ${n.kcal ? 'on' : ''}" data-act="food" data-k="kcal"><b>${st.kcal.toLocaleString()} kcal</b><span>${n.kcal ? '達成 ✓' : '守れたらタップ'}</span></button>
+      <button class="toggle ${n.protein ? 'on' : ''}" data-act="food" data-k="protein"><b>たんぱく質 ${st.protein} g</b><span>${n.protein ? '達成 ✓' : '摂れたらタップ'}</span></button>
     </div>`)}
   ${picker ? pickerSheet() : ''}`;
 }
@@ -240,25 +241,25 @@ function weeklyCheckCard(week, t) {
   if ((dow !== 6 && dow !== 0) || S.checks[week]) return '';
   const res = E.weeklyCheck(S.weights, t);
   if (!res) return '';
-  const rate = `${res.rate >= 0 ? 'losing' : 'gaining'} ${kg(Math.abs(res.rate))} kg/week`;
+  const rate = `週 ${kg(Math.abs(res.rate))} kg のペースで${res.rate >= 0 ? '減っています' : '増えています'}`;
   if (res.delta === 0) {
-    return card('Weekly check', `<p>You're ${rate}, right on pace. Keep ${S.settings.kcal.toLocaleString()} kcal.</p>
+    return card('週次チェック', `<p>現在、${rate}。ペース通りです。${S.settings.kcal.toLocaleString()} kcal を続けましょう。</p>
       <button class="secondary" data-act="check" data-d="0">OK</button>`);
   }
   const next = Math.max(E.MIN_KCAL, S.settings.kcal + res.delta);
-  const why = res.delta < 0 ? 'slower than the 0.5 kg/week you need' : 'fast enough to risk losing muscle';
-  return card('Weekly check', `<p>You're ${rate}, ${why}. Change your target from ${S.settings.kcal.toLocaleString()} to <b>${next.toLocaleString()} kcal</b>?</p>
-    <div class="row"><button class="primary" data-act="check" data-d="${next - S.settings.kcal}">Apply</button>
-    <button class="secondary" data-act="check" data-d="0">Not now</button></div>`);
+  const why = res.delta < 0 ? '必要な週0.5 kgより遅いペースです' : '筋肉が落ちるおそれのある速さです';
+  return card('週次チェック', `<p>現在、${rate}。${why}。目標を ${S.settings.kcal.toLocaleString()} から <b>${next.toLocaleString()} kcal</b> に変更しますか？</p>
+    <div class="row"><button class="primary" data-act="check" data-d="${next - S.settings.kcal}">変更する</button>
+    <button class="secondary" data-act="check" data-d="0">今はしない</button></div>`);
 }
 
 function pickerSheet() {
   return `<div class="sheet-bg" data-act="unpick"></div>
-  <div class="sheet" role="dialog" aria-label="Choose a workout">
-    <p class="eyebrow">Choose a workout</p>
+  <div class="sheet" role="dialog" aria-label="ワークアウトを選ぶ">
+    <p class="eyebrow">ワークアウトを選ぶ</p>
     ${Object.entries(DAYS).map(([k, d]) => `<button class="pick" data-act="start" data-day="${k}">
-      <b>${d.name}</b><span>${d.subtitle} · ~${d.minutes} min</span></button>`).join('')}
-    <button class="text-btn" data-act="unpick">Cancel</button>
+      <b>${d.name}</b><span>${d.subtitle}・約${d.minutes}分</span></button>`).join('')}
+    <button class="text-btn" data-act="unpick">キャンセル</button>
   </div>`;
 }
 
@@ -269,15 +270,15 @@ function card(title, body) {
 function playerHeader(a) {
   const pct = (a.idx / a.steps.length) * 100;
   return `<header class="player-top">
-      <button class="icon-btn" data-act="leave" aria-label="Back to home">←</button>
-      <span class="muted">${esc(DAYS[a.day].name)} · ${a.idx + 1}/${a.steps.length}</span>
-      <button class="text-btn" data-act="end">End</button>
+      <button class="icon-btn" data-act="leave" aria-label="ホームに戻る">←</button>
+      <span class="muted">${esc(DAYS[a.day].name)}・${a.idx + 1}/${a.steps.length}</span>
+      <button class="text-btn" data-act="end">終了</button>
     </header>
     <div class="bar"><span style="width:${pct}%"></span></div>`;
 }
 
 function stepMeta(step) {
-  return `${esc(step.block)}${step.rounds > 1 ? ` · Round ${step.round}/${step.rounds}` : ''}`;
+  return `${esc(step.block)}${step.rounds > 1 ? `・ラウンド ${step.round}/${step.rounds}` : ''}`;
 }
 
 function workout() {
@@ -285,12 +286,12 @@ function workout() {
   if (a.phase === 'rest') return restView(a);
   const step = a.steps[a.idx];
   const ex = EXERCISES[step.ex];
-  const sides = ex.perSide ? ex.sideLabels || ['Left', 'Right'] : [null];
+  const sides = ex.perSide ? ex.sideLabels || ['左', '右'] : [null];
   const chips = [
     `<span class="chip">${esc(ex.load)}</span>`,
     step.slot ? `<span class="chip">${E.tempoText(step.level)}</span>` : '',
-    step.range ? `<span class="chip">${step.range[0]}–${step.range[1]} reps</span>` : '',
-    step.test ? '<span class="chip warn">Max reps, stop before form breaks</span>' : '',
+    step.range ? `<span class="chip">${step.range[0]}〜${step.range[1]}回</span>` : '',
+    step.test ? '<span class="chip warn">最大回数（フォームが崩れる前に止める）</span>' : '',
   ].join('');
   return `<section class="player">
     ${playerHeader(a)}
@@ -302,14 +303,14 @@ function workout() {
       ${sides.map((label, i) => `<div class="stepper">
         ${label ? `<span class="side">${esc(label)}</span>` : ''}
         <div class="stepper-row">
-          <button class="round" data-act="rep" data-i="${i}" data-d="-1" aria-label="One less">−</button>
+          <button class="round" data-act="rep" data-i="${i}" data-d="-1" aria-label="1回減らす">−</button>
           <output class="reps">${a.cur[i]}</output>
-          <button class="round" data-act="rep" data-i="${i}" data-d="1" aria-label="One more">+</button>
+          <button class="round" data-act="rep" data-i="${i}" data-d="1" aria-label="1回増やす">+</button>
         </div></div>`).join('')}
     </div>
-    <p class="muted center">${step.test ? `Best so far: ${S.tests[step.ex]?.best ?? '–'}` : `Target ${step.target}${ex.perSide ? ' per side' : ''}`}</p>
-    <button class="primary big" data-act="done">Done</button>
-    <button class="text-btn center" data-act="skip">Skip this set</button>
+    <p class="muted center">${step.test ? `自己ベスト：${S.tests[step.ex]?.best ?? '–'}回` : `目標 ${step.target}回${perSideNote(ex)}`}</p>
+    <button class="primary big" data-act="done">完了</button>
+    <button class="text-btn center" data-act="skip">このセットをスキップ</button>
   </section>`;
 }
 
@@ -318,7 +319,7 @@ function restView(a) {
   const nx = EXERCISES[next.ex];
   return `<section class="player rest">
     ${playerHeader(a)}
-    <p class="eyebrow center">${a.restKind === 'switch' ? 'Switch to the next exercise' : 'Rest'}</p>
+    <p class="eyebrow center">${a.restKind === 'switch' ? '次の種目へ移動' : '休憩'}</p>
     <div class="ring">
       <svg viewBox="0 0 200 200" aria-hidden="true">
         <circle class="ring-bg" cx="100" cy="100" r="90"/>
@@ -327,14 +328,14 @@ function restView(a) {
       <div id="rest-num" class="ring-num" role="timer">${mmss(a.restTotal)}</div>
     </div>
     <div class="row three">
-      <button class="secondary" data-act="rest" data-d="-15">−15 s</button>
-      <button class="primary" data-act="skiprest">Skip</button>
-      <button class="secondary" data-act="rest" data-d="15">+15 s</button>
+      <button class="secondary" data-act="rest" data-d="-15">−15秒</button>
+      <button class="primary" data-act="skiprest">スキップ</button>
+      <button class="secondary" data-act="rest" data-d="15">+15秒</button>
     </div>
     <div class="card next">
-      <p class="eyebrow">Next · ${stepMeta(next)}</p>
+      <p class="eyebrow">次・${stepMeta(next)}</p>
       <h2>${esc(nx.name)}</h2>
-      <p class="muted">${next.test ? 'Max reps' : `${next.target}${nx.perSide ? ' per side' : ''} reps`} · ${esc(nx.load)}</p>
+      <p class="muted">${next.test ? '最大回数' : `${next.target}回${perSideNote(nx)}`}・${esc(nx.load)}</p>
     </div>
   </section>`;
 }
@@ -344,24 +345,24 @@ function summaryView() {
   const { session, results, suggestions, testResults } = summary;
   const minutes = Math.max(1, Math.round((session.finishedAt - session.startedAt) / 60000));
   const totalReps = session.sets.reduce((s, x) => s + x.reps.reduce((a, b) => a + b, 0), 0);
-  return `<header class="top"><p class="eyebrow">${esc(DAYS[session.day].name)} · week ${session.week}</p><h1>Workout complete</h1></header>
+  return `<header class="top"><p class="eyebrow">${esc(DAYS[session.day].name)}・第${session.week}週</p><h1>ワークアウト完了</h1></header>
   <div class="card"><div class="stats">
-    <div><b>${minutes}</b><span>minutes</span></div>
-    <div><b>${session.sets.length}</b><span>sets</span></div>
-    <div><b>${totalReps}</b><span>reps</span></div>
+    <div><b>${minutes}</b><span>分</span></div>
+    <div><b>${session.sets.length}</b><span>セット</span></div>
+    <div><b>${totalReps}</b><span>回</span></div>
   </div></div>
-  ${testResults.map(r => card(EXERCISES[r.ex].name, `<h2>${r.reps} reps ${r.isBest ? '<span class="good">new best</span>' : ''}</h2>
-    ${r.prev ? `<p class="muted">Previous best ${r.prev}</p>` : ''}`)).join('')}
-  ${suggestions.map((s, i) => card('Level up', `<p><b>${esc(EXERCISES[s.ex].name)}</b>: you hit the top of the range in two sessions in a row.</p>
-    <p>Next: <b>${esc(s.next.label)}</b></p>
-    ${s.state === 'open' ? `<div class="row"><button class="primary" data-act="accept" data-i="${i}">Accept</button>
-      <button class="secondary" data-act="decline" data-i="${i}">Not now</button></div>`
-      : `<p class="muted">${s.state === 'accepted' ? 'Applied from next session ✓' : 'Skipped. Asked again after two more sessions.'}</p>`}`)).join('')}
-  ${results.length ? card('Sets', `<ul class="results">${results.map(r => `<li>
+  ${testResults.map(r => card(EXERCISES[r.ex].name, `<h2>${r.reps}回 ${r.isBest ? '<span class="good">自己ベスト更新</span>' : ''}</h2>
+    ${r.prev ? `<p class="muted">これまでのベスト ${r.prev}回</p>` : ''}`)).join('')}
+  ${suggestions.map((s, i) => card('レベルアップ', `<p><b>${esc(EXERCISES[s.ex].name)}</b>：2回続けて回数レンジの上限を達成しました。</p>
+    <p>次のステップ：<b>${esc(s.next.label)}</b></p>
+    ${s.state === 'open' ? `<div class="row"><button class="primary" data-act="accept" data-i="${i}">適用する</button>
+      <button class="secondary" data-act="decline" data-i="${i}">今はしない</button></div>`
+      : `<p class="muted">${s.state === 'accepted' ? '次回から適用されます ✓' : 'スキップしました。あと2回達成すると再度提案します。'}</p>`}`)).join('')}
+  ${results.length ? card('セット', `<ul class="results">${results.map(r => `<li>
     <span>${esc(EXERCISES[r.ex].name)}</span>
-    <span class="${r.hitTarget ? 'good' : 'muted'}">${r.reps.map(repsText).join(' · ')}${r.hitTarget ? ' ✓' : ''}</span></li>`).join('')}</ul>
-    <p class="muted">Next target reps update automatically.</p>`) : ''}
-  <button class="primary big" data-act="home">Back to home</button>`;
+    <span class="${r.hitTarget ? 'good' : 'muted'}">${r.reps.map(repsText).join('・')}${r.hitTarget ? ' ✓' : ''}</span></li>`).join('')}</ul>
+    <p class="muted">次回の目標回数は自動で更新されます。</p>`) : ''}
+  <button class="primary big" data-act="home">ホームに戻る</button>`;
 }
 
 function weight() {
@@ -369,8 +370,8 @@ function weight() {
   const sorted = [...S.weights].sort((a, b) => a.date.localeCompare(b.date));
   const last = sorted.at(-1);
   if (weightDraft == null) weightDraft = S.weights.find(w => w.date === t)?.kg ?? last?.kg ?? S.settings.startWeight;
-  return `<header class="top"><p class="eyebrow">Weigh in</p><h1>Weight</h1></header>
-  ${card('Today · morning, before breakfast', `
+  return `<header class="top"><p class="eyebrow">体重記録</p><h1>体重</h1></header>
+  ${card('今日・朝、朝食前に', `
     <div class="stepper-row weight">
       <button class="round small" data-act="w" data-d="-1">−1</button>
       <button class="round small" data-act="w" data-d="-0.1">−.1</button>
@@ -378,12 +379,12 @@ function weight() {
       <button class="round small" data-act="w" data-d="0.1">+.1</button>
       <button class="round small" data-act="w" data-d="1">+1</button>
     </div>
-    <button class="primary big" data-act="wsave">Save ${kg(weightDraft)} kg</button>`)}
-  ${card('Trend', `${chart(sorted)}
-    <div class="legend"><span><i class="lg-dot"></i>Daily</span><span><i class="lg-avg"></i>7-day average</span><span><i class="lg-target"></i>Target pace</span></div>`)}
-  ${card('Recent', sorted.length ? `<ul class="results">${sorted.slice(-14).reverse().map(w => `<li>
-    <span>${esc(w.date)}</span><span>${kg(w.kg)} kg <button class="icon-btn small" data-act="wdel" data-date="${esc(w.date)}" aria-label="Delete">✕</button></span></li>`).join('')}</ul>`
-    : '<p class="muted">No entries yet.</p>')}`;
+    <button class="primary big" data-act="wsave">${kg(weightDraft)} kg で保存</button>`)}
+  ${card('推移', `${chart(sorted)}
+    <div class="legend"><span><i class="lg-dot"></i>毎日の体重</span><span><i class="lg-avg"></i>7日平均</span><span><i class="lg-target"></i>目標ペース</span></div>`)}
+  ${card('最近の記録', sorted.length ? `<ul class="results">${sorted.slice(-14).reverse().map(w => `<li>
+    <span>${esc(w.date)}</span><span>${kg(w.kg)} kg <button class="icon-btn small" data-act="wdel" data-date="${esc(w.date)}" aria-label="削除">✕</button></span></li>`).join('')}</ul>`
+    : '<p class="muted">記録はまだありません。</p>')}`;
 }
 
 function chart(ws) {
@@ -407,12 +408,12 @@ function chart(ws) {
   const d0 = E.parseYmd(x0);
   for (let m = new Date(d0.getFullYear(), d0.getMonth() + 1, 1); E.ymd(m) <= x1; m.setMonth(m.getMonth() + 1)) {
     const x = X(E.ymd(m));
-    grid += `<line class="grid" x1="${x}" x2="${x}" y1="${T}" y2="${H - B}"/><text class="axis" x="${x}" y="${H - 6}" text-anchor="middle">${m.toLocaleDateString('en-US', { month: 'short' })}</text>`;
+    grid += `<line class="grid" x1="${x}" x2="${x}" y1="${T}" y2="${H - B}"/><text class="axis" x="${x}" y="${H - 6}" text-anchor="middle">${m.getMonth() + 1}月</text>`;
   }
   const target = `<line class="target" x1="${X(x0)}" y1="${Y(st.startWeight)}" x2="${X(st.targetDate)}" y2="${Y(st.targetWeight)}"/>`;
   const dots = pts.map(w => `<circle class="dot" cx="${X(w.date)}" cy="${Y(w.kg)}" r="2.5"/>`).join('');
   const avg = pts.map(w => `${X(w.date)},${Y(E.avg7(ws, w.date))}`).join(' ');
-  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Weight trend against target pace">
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="体重の推移と目標ペース">
     ${grid}${target}${dots}${pts.length > 1 ? `<polyline class="avg" points="${avg}"/>` : ''}</svg>`;
 }
 
@@ -422,23 +423,23 @@ function progress() {
   const slotsFor = k => DAYS[k].blocks.filter(b => b.type !== 'warmup').flatMap(b => b.items.map(it => `${k}:${typeof it === 'string' ? it : it.ex}`));
   const test = ex => {
     const h = S.tests[ex]?.history || [];
-    return `<div><b>${S.tests[ex]?.best ?? '–'}</b><span>${ex === 'pushup' ? 'push-ups' : 'squats'}${h.length > 1 ? ` (first ${h[0].reps})` : ''}</span></div>`;
+    return `<div><b>${S.tests[ex]?.best ?? '–'}</b><span>${ex === 'pushup' ? '腕立て伏せ' : 'スクワット'}${h.length > 1 ? `（初回 ${h[0].reps}）` : ''}</span></div>`;
   };
-  return `<header class="top"><p class="eyebrow">Week ${E.weekNumber(S.settings.startDate, t)}</p><h1>Progress</h1></header>
-  ${card('All time', `<div class="stats">
-    <div><b>${S.sessions.filter(s => s.day !== 'T').length}</b><span>workouts</span></div>
-    <div><b>${totalReps.toLocaleString()}</b><span>reps</span></div>
+  return `<header class="top"><p class="eyebrow">第${E.weekNumber(S.settings.startDate, t)}週</p><h1>進捗</h1></header>
+  ${card('累計', `<div class="stats">
+    <div><b>${S.sessions.filter(s => s.day !== 'T').length}</b><span>ワークアウト</span></div>
+    <div><b>${totalReps.toLocaleString()}</b><span>回</span></div>
   </div>`)}
-  ${card('Max test', `<div class="stats">${test('pushup')}${test('squat_bw')}</div>`)}
-  ${['A', 'B', 'C'].map(k => card(`${DAYS[k].name} · ${DAYS[k].subtitle}`, `<ul class="results">${slotsFor(k).map(slot => {
+  ${card('MAXテスト', `<div class="stats">${test('pushup')}${test('squat_bw')}</div>`)}
+  ${['A', 'B', 'C'].map(k => card(`${DAYS[k].name}・${DAYS[k].subtitle}`, `<ul class="results">${slotsFor(k).map(slot => {
     const st = E.slotState(S.progress, slot);
     const ex = EXERCISES[st.ex];
-    return `<li><span>${esc(ex.name)}<small>${E.levelText(st.level)}${st.streak ? ` · at top ${st.streak}/2` : ''}</small></span>
-      <span>${st.target ?? ex.range[0]} reps</span></li>`;
+    return `<li><span>${esc(ex.name)}<small>${E.levelText(st.level)}${st.streak ? `・上限達成 ${st.streak}/2` : ''}</small></span>
+      <span>${st.target ?? ex.range[0]}回</span></li>`;
   }).join('')}</ul>`)).join('')}
-  ${card('Recent workouts', S.sessions.length ? `<ul class="results">${S.sessions.slice(-10).reverse().map(s => `<li>
-    <span>${esc(s.date)} · ${esc(DAYS[s.day].name)}</span><span class="muted">${Math.max(1, Math.round((s.finishedAt - s.startedAt) / 60000))} min · ${s.sets.length} sets</span></li>`).join('')}</ul>`
-    : '<p class="muted">Your finished workouts appear here.</p>')}`;
+  ${card('最近のワークアウト', S.sessions.length ? `<ul class="results">${S.sessions.slice(-10).reverse().map(s => `<li>
+    <span>${esc(s.date)}・${esc(DAYS[s.day].name)}</span><span class="muted">${Math.max(1, Math.round((s.finishedAt - s.startedAt) / 60000))}分・${s.sets.length}セット</span></li>`).join('')}</ul>`
+    : '<p class="muted">完了したワークアウトがここに表示されます。</p>')}`;
 }
 
 function settings() {
@@ -448,19 +449,19 @@ function settings() {
   const date = (k, label) => `<label class="field"><span>${label}</span><input type="date" value="${st[k]}" data-set="${k}"></label>`;
   const sw = (k, label, note) => `<label class="field switch"><span>${label}<small>${note}</small></span>
     <input type="checkbox" ${st[k] ? 'checked' : ''} data-set="${k}"></label>`;
-  return `<header class="top"><p class="eyebrow">Settings</p><h1>Settings</h1></header>
-  ${card('Goal', num('startWeight', 'Start weight (kg)', 0.1) + num('targetWeight', 'Target weight (kg)', 0.1)
-    + date('startDate', 'Plan start (week 1)') + date('targetDate', 'Target date'))}
-  ${card('Food', num('kcal', 'Daily calories', 50) + num('protein', 'Daily protein (g)', 5))}
-  ${card('Rest timer', sw('vibrate', 'Vibration', 'Buzz at 3-2-1 and when rest ends')
-    + sw('sound', 'Sound', 'Off keeps it silent for neighbours'))}
-  ${card('Your data', `<p class="muted">Everything is stored only on this phone. Export a backup now and then.</p>
-    <div class="row"><button class="secondary" data-act="export">Export backup</button>
-    <button class="secondary" data-act="import">Import backup</button></div>
+  return `<header class="top"><p class="eyebrow">設定</p><h1>設定</h1></header>
+  ${card('目標', num('startWeight', '開始時の体重（kg）', 0.1) + num('targetWeight', '目標体重（kg）', 0.1)
+    + date('startDate', 'プラン開始日（第1週）') + date('targetDate', '目標日'))}
+  ${card('食事', num('kcal', '1日のカロリー（kcal）', 50) + num('protein', '1日のたんぱく質（g）', 5))}
+  ${card('休憩タイマー', sw('vibrate', 'バイブレーション', '残り3・2・1秒と休憩終了時に振動')
+    + sw('sound', 'サウンド', 'オフにすると音が出ず、ご近所にも静か'))}
+  ${card('データ', `<p class="muted">データはすべてこのスマホの中だけに保存されます。ときどきバックアップを書き出してください。</p>
+    <div class="row"><button class="secondary" data-act="export">バックアップを書き出す</button>
+    <button class="secondary" data-act="import">バックアップを読み込む</button></div>
     <input type="file" id="import-file" accept="application/json,.json" hidden>
-    <button class="text-btn danger" data-act="reset">Delete all data</button>`)}
-  ${card('Quiet rules', `<ul class="plain"><li>Lower every rep over 3 seconds.</li><li>Train barefoot on a folded blanket.</li>
-    <li>Set dumbbells down on a towel. Never drop them.</li><li>Put the chair against a wall for dips and decline push-ups.</li></ul>`)}`;
+    <button class="text-btn danger" data-act="reset">すべてのデータを削除</button>`)}
+  ${card('静音のルール', `<ul class="plain"><li>毎回3秒かけて下ろす。</li><li>たたんだ毛布の上で、裸足でトレーニングする。</li>
+    <li>ダンベルはタオルの上に置く。絶対に落とさない。</li><li>ディップスとデクライン腕立て伏せでは椅子を壁につける。</li></ul>`)}`;
 }
 
 // ---------- events ----------
@@ -486,7 +487,7 @@ const actions = {
   skip: () => { nextStep(); commit(); },
   end: () => {
     const logged = Object.keys(S.active.logs).length;
-    if (!confirm(logged ? 'End the workout now? Logged sets are saved.' : 'End the workout? Nothing was logged.')) return;
+    if (!confirm(logged ? 'ワークアウトを終了しますか？記録したセットは保存されます。' : 'ワークアウトを終了しますか？まだ何も記録されていません。')) return;
     finish();
     commit();
   },
@@ -528,7 +529,7 @@ const actions = {
     commit();
   },
   wdel: d => {
-    if (!confirm(`Delete the entry for ${d.date}?`)) return;
+    if (!confirm(`${d.date} の記録を削除しますか？`)) return;
     S.weights = S.weights.filter(w => w.date !== d.date);
     weightDraft = null;
     commit();
@@ -541,8 +542,8 @@ const actions = {
   },
   import: () => document.getElementById('import-file').click(),
   reset: () => {
-    if (!confirm('Delete all workouts, weights and settings on this phone?')) return;
-    if (!confirm('This cannot be undone. Delete everything?')) return;
+    if (!confirm('このスマホのワークアウト・体重・設定をすべて削除しますか？')) return;
+    if (!confirm('この操作は取り消せません。本当にすべて削除しますか？')) return;
     S = defaultState();
     view = 'home';
     commit();
@@ -568,11 +569,11 @@ app.addEventListener('change', async e => {
   if (el.id === 'import-file' && el.files[0]) {
     try {
       const next = normalize(JSON.parse(await el.files[0].text()));
-      if (!confirm('Replace the data on this phone with this backup?')) return;
+      if (!confirm('このバックアップでスマホのデータを置き換えますか？')) return;
       S = { ...next, active: null };
       commit();
     } catch (err) {
-      alert(`Could not import: ${err.message}`);
+      alert(`読み込めませんでした：${err.message}`);
     }
     return;
   }

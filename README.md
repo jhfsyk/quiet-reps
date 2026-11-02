@@ -3,6 +3,9 @@
 A phone PWA for a quiet, rep-based home training plan: 178 cm, 79 → 70 kg by 2027-02-28,
 5 days a week (Mon, Tue, Thu, Fri, Sat), 15–20 minutes, full body, no jumping.
 No build step and no dependencies. All data stays in the phone's `localStorage`.
+The UI, exercise names and form cues are in Japanese (`app.js`, `data.js`).
+
+Live: https://jhfsyk.github.io/quiet-reps/
 
 ## Blueprint
 

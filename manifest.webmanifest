@@ -1,7 +1,8 @@
 {
   "name": "Quiet Reps",
   "short_name": "Quiet Reps",
-  "description": "Quiet, rep-based home workouts with a rest timer and weight tracking.",
+  "description": "静かな自宅トレーニング：回数ベースのメニュー、休憩タイマー、体重記録。",
+  "lang": "ja",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

@@ -22,7 +22,7 @@ export function defaultState() {
 
 export function normalize(raw) {
   const base = defaultState();
-  if (!raw || typeof raw !== 'object' || !raw.settings) throw new Error('Not a Quiet Reps backup');
+  if (!raw || typeof raw !== 'object' || !raw.settings) throw new Error('Quiet Reps のバックアップではありません');
   return { ...base, ...raw, settings: { ...base.settings, ...raw.settings } };
 }
 

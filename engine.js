@@ -22,7 +22,7 @@ export function weekNumber(startDate, date) {
   return Math.max(1, Math.floor(daysBetween(startDate, date) / 7) + 1);
 }
 export function phaseFor(week) {
-  return PHASES.find(p => week >= p.from && week <= p.to) || { name: 'Maintenance' };
+  return PHASES.find(p => week >= p.from && week <= p.to) || { name: '維持期' };
 }
 
 // ---- progression ----
@@ -37,19 +37,19 @@ function slotRange(spec, st) {
 }
 
 export function tempoText(level) {
-  return level >= 1 ? '4 s down · 1 s pause' : '3 s down · 1 s up';
+  return level >= 1 ? '下ろす4秒・1秒停止' : '下ろす3秒・上げる1秒';
 }
 
 export function levelText(level) {
-  return ['Base', 'Slow tempo', 'Slow tempo + extra set'][level] || 'Base';
+  return ['基本', 'スローテンポ', 'スローテンポ＋1セット'][level] || '基本';
 }
 
 // The next step up the ladder: slower tempo, then an extra set, then the harder variant.
 export function nextStep(st) {
-  if (st.level === 0) return { kind: 'tempo', label: 'Slower tempo: 4 s down + 1 s pause' };
-  if (st.level === 1) return { kind: 'set', label: 'Add one more set' };
+  if (st.level === 0) return { kind: 'tempo', label: 'テンポを遅く：4秒で下ろして1秒停止' };
+  if (st.level === 1) return { kind: 'set', label: '1セット追加' };
   const harder = EXERCISES[st.ex].harder;
-  return harder ? { kind: 'harder', ex: harder, label: `Switch to ${EXERCISES[harder].name}` } : null;
+  return harder ? { kind: 'harder', ex: harder, label: `「${EXERCISES[harder].name}」に変更` } : null;
 }
 
 export function acceptStep(st, next) {
